@@ -7,19 +7,29 @@ export class MobileControls {
         this.btnEnterCar = document.getElementById('btn-enter-car');
         this.btnSprint = document.getElementById('btn-sprint');
         this.btnAttack = document.getElementById('btn-attack');
+        this.fullscreenBtn = document.getElementById('fullscreen-btn');
         
         this.joystickActive = false;
         this.joystickStartX = 0;
         this.joystickStartY = 0;
         this.joystickRadius = 50;
+        this.activeTouchId = null;
         
         this.setupJoystick();
         this.setupButtons();
+        this.setupFullscreen();
     }
     
     setupJoystick() {
         const handleStart = (e) => {
             e.preventDefault();
+            
+            // For touch events, track the touch identifier
+            if (e.touches) {
+                if (this.joystickActive) return; // Already tracking a touch
+                this.activeTouchId = e.touches[0].identifier;
+            }
+            
             this.joystickActive = true;
             
             const rect = this.joystickContainer.getBoundingClientRect();
@@ -34,13 +44,39 @@ export class MobileControls {
             if (!this.joystickActive) return;
             e.preventDefault();
             
-            const touch = e.touches ? e.touches[0] : e;
+            // For touch events, find the correct touch
+            let touch = e;
+            if (e.touches && this.activeTouchId !== null) {
+                for (let i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === this.activeTouchId) {
+                        touch = e.touches[i];
+                        break;
+                    }
+                }
+            } else if (e.touches) {
+                touch = e.touches[0];
+            }
+            
             this.updateJoystick(touch.clientX, touch.clientY);
         };
         
         const handleEnd = (e) => {
             e.preventDefault();
+            
+            // For touch events, check if our tracked touch ended
+            if (e.changedTouches && this.activeTouchId !== null) {
+                let foundTouch = false;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === this.activeTouchId) {
+                        foundTouch = true;
+                        break;
+                    }
+                }
+                if (!foundTouch) return; // Not our touch
+            }
+            
             this.joystickActive = false;
+            this.activeTouchId = null;
             this.resetJoystick();
         };
         
@@ -118,5 +154,60 @@ export class MobileControls {
             e.preventDefault();
             this.input.setAction('attack', true);
         });
+    }
+    
+    setupFullscreen() {
+        this.fullscreenBtn.addEventListener('click', () => {
+            this.toggleFullscreen();
+        });
+        
+        // Update button icon when fullscreen state changes
+        document.addEventListener('fullscreenchange', () => {
+            this.updateFullscreenIcon();
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            this.updateFullscreenIcon();
+        });
+        document.addEventListener('mozfullscreenchange', () => {
+            this.updateFullscreenIcon();
+        });
+        document.addEventListener('MSFullscreenChange', () => {
+            this.updateFullscreenIcon();
+        });
+    }
+    
+    toggleFullscreen() {
+        const gameContainer = document.getElementById('game-container');
+        
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && !document.msFullscreenElement) {
+            // Enter fullscreen
+            if (gameContainer.requestFullscreen) {
+                gameContainer.requestFullscreen();
+            } else if (gameContainer.webkitRequestFullscreen) {
+                gameContainer.webkitRequestFullscreen();
+            } else if (gameContainer.mozRequestFullScreen) {
+                gameContainer.mozRequestFullScreen();
+            } else if (gameContainer.msRequestFullscreen) {
+                gameContainer.msRequestFullscreen();
+            }
+        } else {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+    
+    updateFullscreenIcon() {
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || 
+                           document.mozFullScreenElement || document.msFullscreenElement;
+        this.fullscreenBtn.textContent = isFullscreen ? '⛶' : '⛶';
     }
 }

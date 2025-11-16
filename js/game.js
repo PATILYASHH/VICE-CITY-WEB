@@ -1,6 +1,8 @@
 import { InputManager } from './input.js';
 import { Player } from './player.js';
 import { Car } from './car.js';
+import { AICar } from './aicar.js';
+import { NPC } from './npc.js';
 import { World } from './world.js';
 import { MobileControls } from './controls.js';
 
@@ -32,12 +34,17 @@ class Game {
         this.ctx = this.canvas.getContext('2d');
         this.running = false;
         
-        this.worldWidth = 2000;
-        this.worldHeight = 2000;
+        this.minimap = document.getElementById('minimap');
+        this.minimapCtx = this.minimap ? this.minimap.getContext('2d') : null;
+        
+        this.worldWidth = 4000;
+        this.worldHeight = 4000;
         
         this.input = null;
         this.player = null;
         this.cars = [];
+        this.aiCars = [];
+        this.npcs = [];
         this.world = null;
         this.camera = null;
         this.controls = null;
@@ -64,6 +71,8 @@ class Game {
         );
         
         this.spawnCars();
+        this.spawnAICars();
+        this.spawnNPCs();
         
         this.controls = new MobileControls(this.input);
         
@@ -75,6 +84,11 @@ class Game {
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+        
+        if (this.minimap) {
+            this.minimap.width = 200;
+            this.minimap.height = 200;
+        }
         
         if (this.camera) {
             this.camera.width = this.canvas.width;
@@ -90,7 +104,11 @@ class Game {
             { x: 1200, y: 800 },
             { x: 1600, y: 400 },
             { x: 600, y: 1200 },
-            { x: 1000, y: 1000 }
+            { x: 1000, y: 1000 },
+            { x: 2400, y: 1200 },
+            { x: 3000, y: 2000 },
+            { x: 2000, y: 3200 },
+            { x: 3400, y: 2800 }
         ];
         
         for (const pos of positions) {
@@ -101,7 +119,56 @@ class Game {
         }
     }
     
-    update() {
+    spawnAICars() {
+        const carTypes = ['sedan', 'sports', 'truck', 'taxi'];
+        const numAICars = 15;
+        
+        for (let i = 0; i < numAICars; i++) {
+            let x, y;
+            let validPosition = false;
+            
+            // Try to spawn on roads
+            while (!validPosition) {
+                x = Math.random() * this.worldWidth;
+                y = Math.random() * this.worldHeight;
+                
+                if (!this.world.checkCollision(x, y, 40, 70)) {
+                    validPosition = true;
+                }
+            }
+            
+            const type = carTypes[Math.floor(Math.random() * carTypes.length)];
+            const aiCar = new AICar(x, y, type);
+            aiCar.angle = Math.random() * Math.PI * 2;
+            this.aiCars.push(aiCar);
+        }
+    }
+    
+    spawnNPCs() {
+        const npcTypes = ['pedestrian', 'shopkeeper', 'worker'];
+        const numNPCs = 30;
+        
+        for (let i = 0; i < numNPCs; i++) {
+            let x, y;
+            let validPosition = false;
+            
+            // Spawn NPCs in safe areas (not on roads, not in buildings)
+            while (!validPosition) {
+                x = 200 + Math.random() * (this.worldWidth - 400);
+                y = 200 + Math.random() * (this.worldHeight - 400);
+                
+                if (!this.world.checkCollision(x, y, 15, 15)) {
+                    validPosition = true;
+                }
+            }
+            
+            const type = npcTypes[Math.floor(Math.random() * npcTypes.length)];
+            const npc = new NPC(x, y, type);
+            this.npcs.push(npc);
+        }
+    }
+    
+    update(deltaTime) {
         const activeEntity = this.player.inVehicle ? this.player.vehicle : this.player;
         
         if (this.input.isEnterCarPressed()) {
@@ -118,6 +185,16 @@ class Game {
             if (!car.occupied) {
                 car.update(this.input, this.world);
             }
+        }
+        
+        // Update AI cars
+        for (const aiCar of this.aiCars) {
+            aiCar.updateAI(this.world, deltaTime);
+        }
+        
+        // Update NPCs
+        for (const npc of this.npcs) {
+            npc.update(deltaTime, this.world);
         }
         
         this.camera.follow(activeEntity);
@@ -140,12 +217,24 @@ class Game {
         let nearest = null;
         let minDistance = Infinity;
         
+        // Check regular cars
         for (const car of this.cars) {
             if (!car.occupied) {
                 const distance = car.distanceTo(this.player.x, this.player.y);
                 if (distance < minDistance) {
                     minDistance = distance;
                     nearest = car;
+                }
+            }
+        }
+        
+        // Check AI cars
+        for (const aiCar of this.aiCars) {
+            if (!aiCar.occupied) {
+                const distance = aiCar.distanceTo(this.player.x, this.player.y);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = aiCar;
                 }
             }
         }
@@ -178,13 +267,109 @@ class Game {
         
         this.world.draw(this.ctx, this.camera);
         
+        // Draw NPCs
+        for (const npc of this.npcs) {
+            // Only draw NPCs in camera view
+            if (Math.abs(npc.x - this.camera.x) < this.camera.width / 2 + 100 &&
+                Math.abs(npc.y - this.camera.y) < this.camera.height / 2 + 100) {
+                npc.draw(this.ctx);
+            }
+        }
+        
+        // Draw regular cars
         for (const car of this.cars) {
             car.draw(this.ctx);
+        }
+        
+        // Draw AI cars
+        for (const aiCar of this.aiCars) {
+            aiCar.draw(this.ctx);
         }
         
         this.player.draw(this.ctx);
         
         this.ctx.restore();
+        
+        // Draw minimap
+        this.renderMinimap();
+    }
+    
+    renderMinimap() {
+        if (!this.minimapCtx) return;
+        
+        const mmCtx = this.minimapCtx;
+        const mmWidth = this.minimap.width;
+        const mmHeight = this.minimap.height;
+        const scale = mmWidth / this.worldWidth;
+        
+        // Clear minimap
+        mmCtx.fillStyle = '#2ecc71';
+        mmCtx.fillRect(0, 0, mmWidth, mmHeight);
+        
+        // Draw roads on minimap
+        mmCtx.fillStyle = '#7f8c8d';
+        const gridSize = 100 * scale;
+        for (let i = 0; i < this.worldWidth / 100; i++) {
+            for (let j = 0; j < this.worldHeight / 100; j++) {
+                if (i % 3 === 0 || j % 3 === 0) {
+                    mmCtx.fillRect(i * gridSize, j * gridSize, gridSize, gridSize);
+                }
+            }
+        }
+        
+        // Draw buildings on minimap
+        mmCtx.fillStyle = '#34495e';
+        for (const building of this.world.buildings) {
+            mmCtx.fillRect(
+                building.x * scale,
+                building.y * scale,
+                building.width * scale,
+                building.height * scale
+            );
+        }
+        
+        // Draw AI cars on minimap
+        mmCtx.fillStyle = '#3498db';
+        for (const aiCar of this.aiCars) {
+            mmCtx.fillRect(
+                aiCar.x * scale - 2,
+                aiCar.y * scale - 2,
+                4, 4
+            );
+        }
+        
+        // Draw regular cars on minimap
+        mmCtx.fillStyle = '#e74c3c';
+        for (const car of this.cars) {
+            mmCtx.fillRect(
+                car.x * scale - 2,
+                car.y * scale - 2,
+                4, 4
+            );
+        }
+        
+        // Draw player on minimap
+        const activeEntity = this.player.inVehicle ? this.player.vehicle : this.player;
+        mmCtx.fillStyle = '#ffcc00';
+        mmCtx.beginPath();
+        mmCtx.arc(activeEntity.x * scale, activeEntity.y * scale, 4, 0, Math.PI * 2);
+        mmCtx.fill();
+        
+        // Draw direction indicator
+        mmCtx.strokeStyle = '#ffcc00';
+        mmCtx.lineWidth = 2;
+        mmCtx.beginPath();
+        mmCtx.moveTo(activeEntity.x * scale, activeEntity.y * scale);
+        mmCtx.lineTo(
+            activeEntity.x * scale + Math.cos(activeEntity.angle) * 10,
+            activeEntity.y * scale + Math.sin(activeEntity.angle) * 10
+        );
+        mmCtx.stroke();
+        
+        // Draw border
+        mmCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        mmCtx.lineWidth = 2;
+        mmCtx.strokeRect(0, 0, mmWidth, mmHeight);
     }
     
     gameLoop(currentTime) {
@@ -193,7 +378,7 @@ class Game {
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
-        this.update();
+        this.update(deltaTime);
         this.render();
         
         requestAnimationFrame((time) => this.gameLoop(time));

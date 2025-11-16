@@ -91,13 +91,20 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s;
+    transition: all 0.1s ease-out;
     user-select: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
 }
 
 .action-btn:active {
-    background: rgba(255, 100, 100, 0.6);
-    transform: scale(0.95);
+    background: rgba(255, 100, 100, 0.7);
+    transform: scale(0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 #info-panel {
@@ -118,6 +125,57 @@ body {
 
 #state-info {
     color: #ffcc00;
+}
+
+#fullscreen-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: white;
+    user-select: none;
+    pointer-events: auto;
+    z-index: 20;
+}
+
+#fullscreen-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+#fullscreen-btn:active {
+    background: rgba(255, 100, 100, 0.6);
+    transform: scale(0.95);
+}
+
+#minimap-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    height: 200px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 20;
+}
+
+#minimap {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 @media (min-width: 768px) {
@@ -156,5 +214,12 @@ body {
         width: 55px;
         height: 55px;
         font-size: 20px;
+    }
+    
+    #minimap-container {
+        width: 150px;
+        height: 150px;
+        bottom: 150px;
+        left: 20px;
     }
 }
