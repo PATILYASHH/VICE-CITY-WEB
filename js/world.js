@@ -41,7 +41,16 @@ export class World {
     }
     
     getRandomBuildingColor() {
-        const colors = ['#8e44ad', '#2c3e50', '#34495e', '#7f8c8d', '#16a085'];
+        const colors = [
+            '#8e44ad', // Purple
+            '#2c3e50', // Dark blue
+            '#34495e', // Darker gray
+            '#7f8c8d', // Gray
+            '#16a085', // Teal
+            '#c0392b', // Dark red
+            '#d35400', // Dark orange
+            '#2980b9'  // Blue
+        ];
         return colors[Math.floor(Math.random() * colors.length)];
     }
     

@@ -12,12 +12,22 @@ class Camera {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.smoothing = 0.1;
+        this.smoothing = 0.15;
+        this.lookAheadDistance = 100;
     }
     
     follow(target) {
-        const targetX = target.x;
-        const targetY = target.y;
+        // Calculate look-ahead position based on target's angle and speed
+        let lookAheadX = 0;
+        let lookAheadY = 0;
+        
+        if (target.speed && Math.abs(target.speed) > 1) {
+            lookAheadX = Math.cos(target.angle) * this.lookAheadDistance * (target.speed / target.maxSpeed);
+            lookAheadY = Math.sin(target.angle) * this.lookAheadDistance * (target.speed / target.maxSpeed);
+        }
+        
+        const targetX = target.x + lookAheadX;
+        const targetY = target.y + lookAheadY;
         
         this.x += (targetX - this.x) * this.smoothing;
         this.y += (targetY - this.y) * this.smoothing;
@@ -51,6 +61,11 @@ class Game {
         
         this.speedMeter = document.getElementById('speed-meter');
         this.stateInfo = document.getElementById('state-info');
+        this.moneyDisplay = document.getElementById('money-display');
+        this.healthFill = document.getElementById('health-fill');
+        
+        this.playerMoney = 1000;
+        this.playerHealth = 100;
         
         this.lastTime = 0;
     }
@@ -256,6 +271,12 @@ class Game {
                 this.stateInfo.textContent = 'Press E to enter vehicle';
             }
         }
+        
+        // Update money display
+        this.moneyDisplay.textContent = `$${this.playerMoney}`;
+        
+        // Update health bar
+        this.healthFill.style.width = `${this.playerHealth}%`;
     }
     
     render() {
