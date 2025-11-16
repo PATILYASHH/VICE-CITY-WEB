@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vice City Web - Open World Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="mobile-controls">
+            <div id="joystick-container">
+                <div id="joystick-base"></div>
+                <div id="joystick-stick"></div>
+            </div>
+            <div id="action-buttons">
+                <button id="btn-enter-car" class="action-btn">🚗</button>
+                <button id="btn-sprint" class="action-btn">🏃</button>
+                <button id="btn-attack" class="action-btn">👊</button>
+            </div>
+        </div>
+        <div id="info-panel">
+            <div id="speed-meter">Speed: 0</div>
+            <div id="state-info">On Foot</div>
+        </div>
+    </div>
+    
+    <script type="module" src="js/game.js"></script>
+</body>
+</html>
