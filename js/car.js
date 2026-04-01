@@ -10,6 +10,7 @@ export class Car {
 
         this.occupied = false;
         this.type = type;
+        this._blinkOn = false;  // police light state, toggled by game loop each frame
 
         const s = Car.SPECS[type] || Car.SPECS.sedan;
         this.width       = s.width;
@@ -187,12 +188,12 @@ export class Car {
         ctx.fillRect(-hw - 3,  hh - 16,  3, 6);
         ctx.fillRect( hw,      hh - 16,  3, 6);
 
-        // Police light bar
+        // Police light bar – state set once per frame by the game loop (avoids
+        // calling Date.now() on every draw call)
         if (this.type === 'police') {
-            const blink = Math.floor(Date.now() / 300) % 2;
-            ctx.fillStyle = blink ? '#0044ff' : '#ff0000';
+            ctx.fillStyle = this._blinkOn ? '#0044ff' : '#ff0000';
             ctx.fillRect(-6, -hh + 3, 5, 5);
-            ctx.fillStyle = blink ? '#ff0000' : '#0044ff';
+            ctx.fillStyle = this._blinkOn ? '#ff0000' : '#0044ff';
             ctx.fillRect(1,  -hh + 3, 5, 5);
         }
 

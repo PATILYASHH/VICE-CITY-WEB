@@ -112,8 +112,11 @@ class Game {
             }
         }
 
-        // Shuffle and pick 22 cars
-        positions.sort(() => Math.random() - 0.5);
+        // Fisher-Yates shuffle for uniform random order
+        for (let i = positions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [positions[i], positions[j]] = [positions[j], positions[i]];
+        }
         const chosen = positions.slice(0, 22);
 
         chosen.forEach((pos, i) => {
@@ -136,7 +139,10 @@ class Game {
             this.player.update(this.input, this.world);
         }
 
+        // Update police blink state once per frame (avoids calling Date.now() per draw)
+        const blinkOn = Math.floor(this.lastTime / 300) % 2 === 0;
         for (const car of this.cars) {
+            if (car.type === 'police') car._blinkOn = blinkOn;
             if (!car.occupied) {
                 // parked cars just apply drag — pass a null-input stub
                 car.update({ getMovementInput: () => ({ dx:0, dy:0 }) }, this.world);

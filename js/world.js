@@ -1,3 +1,11 @@
+// ── District building colour palettes (named constants for easy theming) ──────
+const COLORS = {
+    DOWNTOWN:   ['#c0392b','#8e44ad','#2980b9','#16a085','#d35400','#2c3e50'],
+    NEON:       ['#ff6b9d','#ff1493','#9b59b6','#c8a9e0','#f39c12'],
+    INDUSTRIAL: ['#455a64','#607d8b','#546e7a','#37474f','#6d6d6d'],
+    SUBURBS:    ['#e74c3c','#f39c12','#27ae60','#3498db','#e67e22','#1abc9c','#95a5a6'],
+};
+
 export class World {
     constructor(width, height) {
         this.width = width;
@@ -145,18 +153,18 @@ export class World {
         const ny = gy / 12;
         // Downtown core (centre of map)
         if (nx > 0.3 && nx < 0.65 && ny > 0.3 && ny < 0.65) {
-            return ['#c0392b','#8e44ad','#2980b9','#16a085','#d35400','#2c3e50'][Math.floor(this._rng()*6)];
+            return COLORS.DOWNTOWN[Math.floor(this._rng() * COLORS.DOWNTOWN.length)];
         }
         // Vice City pink/neon district (NW)
         if (nx < 0.35 && ny < 0.35) {
-            return ['#ff6b9d','#ff1493','#9b59b6','#c8a9e0','#f39c12'][Math.floor(this._rng()*5)];
+            return COLORS.NEON[Math.floor(this._rng() * COLORS.NEON.length)];
         }
         // Industrial (SE)
         if (nx > 0.6 && ny > 0.6) {
-            return ['#455a64','#607d8b','#546e7a','#37474f','#6d6d6d'][Math.floor(this._rng()*5)];
+            return COLORS.INDUSTRIAL[Math.floor(this._rng() * COLORS.INDUSTRIAL.length)];
         }
         // Suburbs
-        return ['#e74c3c','#f39c12','#27ae60','#3498db','#e67e22','#1abc9c','#95a5a6'][Math.floor(this._rng()*7)];
+        return COLORS.SUBURBS[Math.floor(this._rng() * COLORS.SUBURBS.length)];
     }
 
     // ─── collision ────────────────────────────────────────────────────────────
@@ -342,7 +350,8 @@ export class World {
         ctx.lineWidth = 1.5;
         ctx.strokeRect(bldg.x, bldg.y, bldg.width, bldg.height);
 
-        // Windows – deterministic pattern based on position
+        // Windows – deterministic lit/unlit pattern: hash window grid coords modulo 4,
+        // keeping 75 % lit (values 1-3) and 25 % dark (value 0).
         const wSz = 5, wSp = 13;
         ctx.fillStyle = '#ffd54f';
         for (let wx = bldg.x + 9; wx < bldg.x + bldg.width - 6; wx += wSp) {
