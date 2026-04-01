@@ -8,18 +8,16 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     background: #000;
     touch-action: none;
 }
 
+/* ── Game container & canvas ─────────────────────────────────────────────── */
 #game-container {
     position: relative;
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 #game-canvas {
@@ -30,12 +28,115 @@ body {
     image-rendering: pixelated;
 }
 
+/* ── HUD wrapper ─────────────────────────────────────────────────────────── */
+#hud {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* ── Top-left: speed + state ─────────────────────────────────────────────── */
+#hud-top-left {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(0,0,0,0.65);
+    border: 1.5px solid #ff69b4;
+    border-radius: 6px;
+    padding: 8px 14px;
+    min-width: 140px;
+}
+
+#speed-meter {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffffff;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px #ff69b4;
+}
+
+#state-info {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #ff69b4;
+    letter-spacing: 0.5px;
+}
+
+/* ── Top-right: money + wanted ───────────────────────────────────────────── */
+#hud-top-right {
+    position: absolute;
+    top: 16px;
+    right: 190px;   /* leave room for mini-map drawn on canvas */
+    background: rgba(0,0,0,0.65);
+    border: 1.5px solid #00e5ff;
+    border-radius: 6px;
+    padding: 8px 14px;
+    text-align: right;
+    min-width: 130px;
+}
+
+#money-display {
+    font-size: 20px;
+    font-weight: bold;
+    color: #00e5ff;
+    text-shadow: 0 0 8px #00e5ff;
+    letter-spacing: 1px;
+}
+
+#wanted-stars {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #f1c40f;
+    text-shadow: 0 0 6px #f1c40f;
+    letter-spacing: 2px;
+}
+
+/* ── Bottom-right: health ────────────────────────────────────────────────── */
+#hud-bottom-right {
+    position: absolute;
+    bottom: 190px;  /* above mini-map area */
+    right: 16px;
+    background: rgba(0,0,0,0.65);
+    border: 1.5px solid #e74c3c;
+    border-radius: 6px;
+    padding: 7px 12px;
+    min-width: 160px;
+}
+
+.bar-label {
+    font-size: 11px;
+    color: #e74c3c;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.bar-track {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.health-fill {
+    width: 100%;
+    background: linear-gradient(90deg, #e74c3c, #ff6b6b);
+    box-shadow: 0 0 6px #e74c3c;
+}
+
+/* ── Mobile controls ─────────────────────────────────────────────────────── */
 #mobile-controls {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none;
     z-index: 10;
 }
@@ -54,8 +155,8 @@ body {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    border: 3px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 105, 180, 0.15);
+    border: 2.5px solid rgba(255, 105, 180, 0.5);
 }
 
 #joystick-stick {
@@ -63,11 +164,11 @@ body {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: rgba(255, 100, 100, 0.7);
-    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 105, 180, 0.65);
+    border: 2px solid rgba(255,255,255,0.7);
     left: 35px;
     top: 35px;
-    transition: all 0.05s;
+    transition: left 0.04s, top 0.04s;
 }
 
 #action-buttons {
@@ -76,7 +177,7 @@ body {
     right: 40px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 14px;
     pointer-events: auto;
 }
 
@@ -84,42 +185,23 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    border: 3px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 229, 255, 0.2);
+    border: 2.5px solid rgba(0, 229, 255, 0.55);
     font-size: 24px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s;
+    transition: background 0.12s, transform 0.1s;
     user-select: none;
 }
 
 .action-btn:active {
-    background: rgba(255, 100, 100, 0.6);
-    transform: scale(0.95);
+    background: rgba(255, 105, 180, 0.55);
+    transform: scale(0.93);
 }
 
-#info-panel {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    pointer-events: none;
-    z-index: 20;
-}
-
-#speed-meter {
-    margin-bottom: 5px;
-}
-
-#state-info {
-    color: #ffcc00;
-}
-
+/* ── Responsive tweaks ───────────────────────────────────────────────────── */
 @media (min-width: 768px) {
     #joystick-container,
     #action-buttons {
@@ -129,32 +211,17 @@ body {
 
 @media (max-width: 767px) {
     #joystick-container {
-        bottom: 30px;
-        left: 30px;
+        bottom: 24px;
+        left: 24px;
         width: 100px;
         height: 100px;
     }
-    
-    #joystick-base {
-        width: 100px;
-        height: 100px;
-    }
-    
-    #joystick-stick {
-        width: 40px;
-        height: 40px;
-        left: 30px;
-        top: 30px;
-    }
-    
-    #action-buttons {
-        bottom: 30px;
-        right: 30px;
-    }
-    
-    .action-btn {
-        width: 55px;
-        height: 55px;
-        font-size: 20px;
-    }
+    #joystick-base  { width: 100px; height: 100px; }
+    #joystick-stick { width: 40px;  height: 40px; left: 30px; top: 30px; }
+
+    #action-buttons { bottom: 24px; right: 24px; }
+    .action-btn     { width: 54px; height: 54px; font-size: 20px; }
+
+    #hud-top-right  { right: 16px; }
+    #hud-bottom-right { bottom: 16px; }
 }

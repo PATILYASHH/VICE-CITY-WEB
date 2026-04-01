@@ -3,29 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vice City Web - Open World Game</title>
+    <title>Vice City Web</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
+
+        <!-- ── Mobile Controls ── -->
         <div id="mobile-controls">
             <div id="joystick-container">
                 <div id="joystick-base"></div>
                 <div id="joystick-stick"></div>
             </div>
             <div id="action-buttons">
-                <button id="btn-enter-car" class="action-btn">🚗</button>
-                <button id="btn-sprint" class="action-btn">🏃</button>
-                <button id="btn-attack" class="action-btn">👊</button>
+                <button id="btn-enter-car"  class="action-btn">🚗</button>
+                <button id="btn-sprint"     class="action-btn">🏃</button>
+                <button id="btn-attack"     class="action-btn">👊</button>
             </div>
         </div>
-        <div id="info-panel">
-            <div id="speed-meter">Speed: 0</div>
-            <div id="state-info">On Foot</div>
+
+        <!-- ── HUD ── -->
+        <div id="hud">
+            <!-- Top-left: speed + state -->
+            <div id="hud-top-left">
+                <div id="speed-meter">0 km/h</div>
+                <div id="state-info">🚶 On Foot</div>
+            </div>
+
+            <!-- Top-right: money + wanted -->
+            <div id="hud-top-right">
+                <div id="money-display">$0</div>
+                <div id="wanted-stars">☆☆☆☆☆</div>
+            </div>
+
+            <!-- Bottom-right: health bar -->
+            <div id="hud-bottom-right">
+                <div class="bar-label">❤ HEALTH</div>
+                <div class="bar-track">
+                    <div id="health-bar-fill" class="bar-fill health-fill"></div>
+                </div>
+            </div>
         </div>
     </div>
-    
+
     <script type="module" src="js/game.js"></script>
 </body>
 </html>
